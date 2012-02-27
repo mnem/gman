@@ -1,5 +1,24 @@
 (function() {
-  var BinaryLoader, Canvas, CanvasFactory, ImageFactory, ImageLoader, MAX_FONT_SIZE, MIN_FONT_SIZE, app, draw_at, express, fs, port, random_image, render_image, set_best_size;
+  var ASSETS, BinaryLoader, Canvas, CanvasFactory, ImageFactory, ImageLoader, MAX_FONT_SIZE, MIN_FONT_SIZE, app, draw_at, express, fs, port, random_image, render_image, set_best_size;
+
+  ASSETS = [
+    {
+      id: "g",
+      path: "/assets/gman.jpg"
+    }, {
+      id: "a",
+      path: "/assets/allo.jpg"
+    }, {
+      id: "b",
+      path: "/assets/goggles.jpg"
+    }, {
+      id: "c",
+      path: "/assets/leader.jpg"
+    }, {
+      id: "d",
+      path: "/assets/publicfigure.jpg"
+    }
+  ];
 
   Canvas = require('canvas');
 
@@ -69,16 +88,21 @@
     return ImageLoader.load(image_path, function(image, error) {
       var bottom, bottom_y, canvas, ctx, max_width, parts, top, top_count, top_y, x;
       canvas = CanvasFactory.createCanvas();
-      canvas.width = image.width;
-      canvas.height = image.height;
       ctx = canvas.getContext('2d');
-      ctx.drawImage(image, 0, 0);
+      if (error) {
+        canvas.width = 640;
+        canvas.height = 960;
+      } else {
+        canvas.width = image.width;
+        canvas.height = image.height;
+        ctx.drawImage(image, 0, 0);
+      }
       ctx.textAlign = "center";
-      max_width = image.width - 10;
+      max_width = canvas.width - 10;
       parts = message.split(" ");
       top_y = 120;
-      bottom_y = image.height - 30;
-      x = image.width / 2;
+      bottom_y = canvas.height - 30;
+      x = canvas.width / 2;
       if (parts.length > 1) {
         top_count = Math.ceil(parts.length / 2);
         top = parts.slice(0, top_count);
@@ -93,28 +117,18 @@
   };
 
   random_image = function() {
-    var images;
-    images = ["/assets/allo.jpg", "/assets/gman.jpg", "/assets/goggles.jpg", "/assets/leader.jpg", "/assets/publicfigure.jpg"];
-    return images[Math.floor(Math.random() * images.length)];
+    return ASSETS[Math.floor(Math.random() * ASSETS.length)].path;
   };
 
   app.get('/:image/:message', function(request, response) {
-    var image_path;
-    switch (request.params.image) {
-      case "a":
-        image_path = "/assets/allo.jpg";
+    var asset, image_path, _i, _len;
+    image_path = ASSETS[0].path;
+    for (_i = 0, _len = ASSETS.length; _i < _len; _i++) {
+      asset = ASSETS[_i];
+      if (asset.id === request.params.image) {
+        image_path = asset.path;
         break;
-      case "b":
-        image_path = "/assets/goggles.jpg";
-        break;
-      case "c":
-        image_path = "/assets/leader.jpg";
-        break;
-      case "d":
-        image_path = "/assets/publicfigure.jpg";
-        break;
-      default:
-        image_path = "/assets/gman.jpg";
+      }
     }
     return render_image(response, request.params.message, image_path);
   });
@@ -124,7 +138,7 @@
   });
 
   app.get('/*', function(request, response) {
-    return render_image(response, "Pampas grass!", "/assets/gman.jpg");
+    return render_image(response, "Pampas grass!", ASSETS[0].path);
   });
 
   port = process.env.PORT || 3000;

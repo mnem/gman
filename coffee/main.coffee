@@ -36,17 +36,22 @@ render_image = (response, message, image_path) ->
     response.contentType('image/png')
     ImageLoader.load image_path, (image, error) ->
         canvas = CanvasFactory.createCanvas()
-        canvas.width = image.width
-        canvas.height = image.height
         ctx = canvas.getContext('2d')
-        ctx.drawImage image, 0, 0
+        if error
+            canvas.width = 640
+            canvas.height = 960
+        else
+            canvas.width = image.width
+            canvas.height = image.height
+            ctx.drawImage(image, 0, 0)
+
         ctx.textAlign = "center"
 
-        max_width = image.width - 10
+        max_width = canvas.width - 10
         parts = message.split " "
         top_y = 120
-        bottom_y = image.height - 30
-        x = image.width / 2
+        bottom_y = canvas.height - 30
+        x = canvas.width / 2
 
         if parts.length > 1
             top_count = Math.ceil(parts.length / 2)
@@ -62,13 +67,7 @@ render_image = (response, message, image_path) ->
 
 ## Pick a random image
 random_image = ->
-    images = [
-        "/assets/allo.jpg",
-        "/assets/gman.jpg",
-        "/assets/goggles.jpg",
-        "/assets/leader.jpg",
-        "/assets/publicfigure.jpg"]
-    return images[Math.floor(Math.random() * images.length)]
+    return ASSETS[Math.floor(Math.random() * ASSETS.length)].path
 
 ########################################
 ## Routing
@@ -76,12 +75,12 @@ random_image = ->
 
 ## Specific image with a message
 app.get '/:image/:message', (request, response) ->
-    switch request.params.image
-        when "a" then image_path = "/assets/allo.jpg"
-        when "b" then image_path = "/assets/goggles.jpg"
-        when "c" then image_path = "/assets/leader.jpg"
-        when "d" then image_path = "/assets/publicfigure.jpg"
-        else image_path = "/assets/gman.jpg"
+    image_path = ASSETS[0].path
+
+    for asset in ASSETS
+        if asset.id == request.params.image
+            image_path = asset.path
+            break
 
     render_image response, request.params.message, image_path
 
@@ -91,7 +90,7 @@ app.get '/:message', (request, response) ->
 
 ## Catch anything else
 app.get '/*', (request, response) ->
-    render_image response, "Pampas grass!", "/assets/gman.jpg"
+    render_image response, "Pampas grass!", ASSETS[0].path
 
 ## Start listening
 port = process.env.PORT || 3000
