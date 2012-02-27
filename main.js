@@ -1,5 +1,5 @@
 (function() {
-  var BinaryLoader, Canvas, CanvasFactory, ImageComposite, ImageFactory, ImageLoader, MAX_FONT_SIZE, MIN_FONT_SIZE, app, draw_at, express, fs, port, random_image, render_image, set_best_size;
+  var BinaryLoader, Canvas, CanvasFactory, ImageFactory, ImageLoader, MAX_FONT_SIZE, MIN_FONT_SIZE, app, draw_at, express, fs, port, random_image, render_image, set_best_size;
 
   Canvas = require('canvas');
 
@@ -24,69 +24,6 @@
     };
 
     return ImageFactory;
-
-  })();
-
-  ImageComposite = (function() {
-
-    function ImageComposite() {
-      this.element = CanvasFactory.createCanvas();
-      this.elementContext = this.element.getContext("2d");
-      this.color = null;
-    }
-
-    ImageComposite.prototype.updateColor = function(color) {
-      this.color = color;
-      return this.composite();
-    };
-
-    ImageComposite.prototype.updateComponents = function(shadingCanvas, colorableCanvas, color) {
-      this.shadingCanvas = shadingCanvas;
-      this.colorableCanvas = colorableCanvas;
-      if (color == null) color = null;
-      if (color !== null) this.color = color;
-      this.element.width = this.shadingCanvas.width;
-      this.element.height = this.shadingCanvas.height;
-      return this.composite();
-    };
-
-    ImageComposite.prototype.composite = function() {
-      this.elementContext.globalCompositeOperation = 'source-over';
-      this.elementContext.fillStyle = this.color;
-      this.elementContext.fillRect(0, 0, this.element.width, this.element.height);
-      if (this.colorableCanvas) {
-        this.elementContext.globalCompositeOperation = 'destination-in';
-        this.elementContext.drawImage(this.colorableCanvas, 0, 0);
-      }
-      if (this.shadingCanvas) {
-        this.elementContext.globalCompositeOperation = 'source-over';
-        return this.elementContext.drawImage(this.shadingCanvas, 0, 0);
-      }
-    };
-
-    ImageComposite.prototype.updateComponentsWithSheet = function(sheet, color) {
-      var colorComp, shadingComp, _ref;
-      if (color == null) color = null;
-      _ref = ImageComposite.extractShadingAndColorFrom1byNSpritesheet(sheet), shadingComp = _ref[0], colorComp = _ref[1];
-      return this.updateComponents(shadingComp, colorComp, color);
-    };
-
-    ImageComposite.extractShadingAndColorFrom1byNSpritesheet = function(sheet) {
-      var colorableCanvas, colorableContext, shadingCanvas, shadingContext;
-      shadingCanvas = CanvasFactory.createCanvas();
-      shadingCanvas.width = sheet.width;
-      shadingCanvas.height = sheet.width;
-      shadingContext = shadingCanvas.getContext("2d");
-      shadingContext.drawImage(sheet, 0, 0);
-      colorableCanvas = CanvasFactory.createCanvas();
-      colorableCanvas.width = sheet.width;
-      colorableCanvas.height = sheet.width;
-      colorableContext = colorableCanvas.getContext("2d");
-      colorableContext.drawImage(sheet, 0, -sheet.width);
-      return [shadingCanvas, colorableCanvas];
-    };
-
-    return ImageComposite;
 
   })();
 
