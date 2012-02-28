@@ -70,14 +70,15 @@
         ctx.font = "" + size + "px sans-serif";
       }
     }
-    ctx.font = "" + size + "px sans-serif";
+    ctx.font = "" + size + "px DejaVuSans-Bold";
     return size;
   };
 
   draw_at = function(x, y, ctx, message, width) {
     var size;
     size = set_best_size(ctx, message, width);
-    ctx.strokeStyle = "rgb(255,255,255)";
+    ctx.strokeStyle = "rgb(0, 0, 0)";
+    ctx.fillStyle = "rgb(255,255,255)";
     ctx.lineWidth = 1 + (size / MAX_FONT_SIZE * 4);
     ctx.strokeText(message, x, y);
     return ctx.fillText(message, x, y);
@@ -104,7 +105,7 @@
       bottom_y = canvas.height - 30;
       x = canvas.width / 2;
       if (parts.length > 1) {
-        top_count = Math.ceil(parts.length / 2);
+        top_count = Math.floor(parts.length / 2);
         top = parts.slice(0, top_count);
         bottom = parts.slice(top_count);
         draw_at(x, top_y, ctx, top.join(" "), max_width);

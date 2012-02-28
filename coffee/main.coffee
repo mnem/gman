@@ -20,13 +20,14 @@ set_best_size = (ctx, message, max) ->
         while ctx.measureText(message).width > max and size > MIN_FONT_SIZE
             size = size - 1
             ctx.font = "#{size}px sans-serif"
-    ctx.font = "#{size}px sans-serif"
+    ctx.font = "#{size}px DejaVuSans-Bold"
     return size
 
 ## Draws a message at a specifc point while trying to fit it in the width
 draw_at = (x, y, ctx, message, width) ->
     size = set_best_size ctx, message, width
-    ctx.strokeStyle = "rgb(255,255,255)"
+    ctx.strokeStyle = "rgb(0, 0, 0)"
+    ctx.fillStyle = "rgb(255,255,255)"
     ctx.lineWidth = 1 + (size / MAX_FONT_SIZE * 4)
     ctx.strokeText message, x, y
     ctx.fillText message, x, y
@@ -54,7 +55,7 @@ render_image = (response, message, image_path) ->
         x = canvas.width / 2
 
         if parts.length > 1
-            top_count = Math.ceil(parts.length / 2)
+            top_count = Math.floor(parts.length / 2)
             top = parts.slice(0, top_count)
             bottom = parts.slice(top_count)
 
