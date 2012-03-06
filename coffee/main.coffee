@@ -1,4 +1,4 @@
-express = require('express');
+express = require('express')
 app = express.createServer express.logger()
 
 ## When working out the best fit, keep the font between these sizes
@@ -33,38 +33,45 @@ draw_at = (x, y, ctx, message, width) ->
     ctx.fillText message, x, y
 
 ## Render the image and text and return a png to the response
-render_image = (response, message, image_path) ->
+render_image = (response, message, image) ->
+    message = message || ""
+    canvas = CanvasFactory.createCanvas()
+    ctx = canvas.getContext('2d')
+    if not image
+        canvas.width = 640
+        canvas.height = 960
+    else
+        canvas.width = image.width
+        canvas.height = image.height
+        ctx.drawImage(image, 0, 0)
+
+    ctx.textAlign = "center"
+
+    max_width = canvas.width - 10
+    parts = message.split " "
+    top_y = 120
+    bottom_y = canvas.height - 30
+    x = canvas.width / 2
+
+    if parts.length > 1
+        top_count = Math.floor(parts.length / 2)
+        top = parts.slice(0, top_count)
+        bottom = parts.slice(top_count)
+
+        draw_at x, top_y, ctx, top.join(" "), max_width
+        draw_at x, bottom_y, ctx, bottom.join(" "), max_width
+    else
+        draw_at x, bottom_y, ctx, message, max_width
+
     response.contentType('image/png')
+    response.send canvas.toBuffer()
+
+render_file = (response, message, image_path) ->
     ImageLoader.load image_path, (image, error) ->
-        canvas = CanvasFactory.createCanvas()
-        ctx = canvas.getContext('2d')
         if error
-            canvas.width = 640
-            canvas.height = 960
-        else
-            canvas.width = image.width
-            canvas.height = image.height
-            ctx.drawImage(image, 0, 0)
+            image = null
 
-        ctx.textAlign = "center"
-
-        max_width = canvas.width - 10
-        parts = message.split " "
-        top_y = 120
-        bottom_y = canvas.height - 30
-        x = canvas.width / 2
-
-        if parts.length > 1
-            top_count = Math.floor(parts.length / 2)
-            top = parts.slice(0, top_count)
-            bottom = parts.slice(top_count)
-
-            draw_at x, top_y, ctx, top.join(" "), max_width
-            draw_at x, bottom_y, ctx, bottom.join(" "), max_width
-        else
-            draw_at x, bottom_y, ctx, message, max_width
-
-        response.send canvas.toBuffer()
+        render_image(response, message, image)
 
 ## Pick a random image
 random_image = ->
@@ -84,24 +91,34 @@ specific_image = (requested_image) ->
 ## Routing
 ########################################
 
-## Specific image with a message
+## Remote image
+app.get /\/grab\/(.+)/, (request, response) ->
+    last = request.params[0].lastIndexOf '/'
+    url = request.params[0].substring(0, last)
+    message = request.params[0].substring(last + 1)
 
+    message = message.replace(/\.png$/i, '')
+    url = "http://#{url}" unless /^http:\/\/.+$/i.test(url)
+
+    render_file response, message, url
+
+## Specific image with a message
 app.get '/:image/:message.png', (request, response) ->
-    render_image response, request.params.message, specific_image(request.params.image)
+    render_file response, request.params.message, specific_image(request.params.image)
 
 app.get '/:image/:message', (request, response) ->
-    render_image response, request.params.message, specific_image(request.params.image)
+    render_file response, request.params.message, specific_image(request.params.image)
 
 ## Just supplying a message will use a random image
 app.get '/:message.png', (request, response) ->
-    render_image response, request.params.message, random_image()
+    render_file response, request.params.message, random_image()
 
 app.get '/:message', (request, response) ->
-    render_image response, request.params.message, random_image()
+    render_file response, request.params.message, random_image()
 
 ## Catch anything else
 app.get '/*', (request, response) ->
-    render_image response, "Pampas grass!", ASSETS[0].path
+    render_file response, "Pampas grass!", ASSETS[0].path
 
 ## Start listening
 port = process.env.PORT || 3000
