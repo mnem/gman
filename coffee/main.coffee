@@ -32,18 +32,35 @@ draw_at = (x, y, ctx, message, width) ->
     ctx.strokeText message, x, y
     ctx.fillText message, x, y
 
+big_blank_canvas = ->
+    canvas = CanvasFactory.createCanvas()
+    canvas.width = 640
+    canvas.height = 960
+    return canvas
+
+create_canvas_from_image = (image) ->
+    if not image
+        return big_blank_canvas()
+
+    canvas = CanvasFactory.createCanvas()
+    canvas.width = image.width
+    canvas.height = image.height
+
+    try
+        ctx = canvas.getContext('2d')
+        ctx.drawImage(image, 0, 0)
+    catch error
+        console.log "Error drawing image: #{error}"
+        canvas = big_blank_canvas()
+
+    return canvas
+
 ## Render the image and text and return a png to the response
 render_image = (response, message, image) ->
     message = message || ""
-    canvas = CanvasFactory.createCanvas()
+
+    canvas = create_canvas_from_image image
     ctx = canvas.getContext('2d')
-    if not image
-        canvas.width = 640
-        canvas.height = 960
-    else
-        canvas.width = image.width
-        canvas.height = image.height
-        ctx.drawImage(image, 0, 0)
 
     ctx.textAlign = "center"
 

@@ -1,5 +1,5 @@
 (function() {
-  var ASSETS, BinaryLoader, Canvas, CanvasFactory, ImageFactory, ImageLoader, MAX_FONT_SIZE, MIN_FONT_SIZE, app, buffertools, draw_at, express, fs, http, port, random_image, render_file, render_image, set_best_size, specific_image, url;
+  var ASSETS, BinaryLoader, Canvas, CanvasFactory, ImageFactory, ImageLoader, MAX_FONT_SIZE, MIN_FONT_SIZE, app, big_blank_canvas, buffertools, create_canvas_from_image, draw_at, express, fs, http, port, random_image, render_file, render_image, set_best_size, specific_image, url;
 
   ASSETS = [
     {
@@ -84,19 +84,35 @@
     return ctx.fillText(message, x, y);
   };
 
+  big_blank_canvas = function() {
+    var canvas;
+    canvas = CanvasFactory.createCanvas();
+    canvas.width = 640;
+    canvas.height = 960;
+    return canvas;
+  };
+
+  create_canvas_from_image = function(image) {
+    var canvas, ctx;
+    if (!image) return big_blank_canvas();
+    canvas = CanvasFactory.createCanvas();
+    canvas.width = image.width;
+    canvas.height = image.height;
+    try {
+      ctx = canvas.getContext('2d');
+      ctx.drawImage(image, 0, 0);
+    } catch (error) {
+      console.log("Error drawing image: " + error);
+      canvas = big_blank_canvas();
+    }
+    return canvas;
+  };
+
   render_image = function(response, message, image) {
     var bottom, bottom_y, canvas, ctx, max_width, parts, top, top_count, top_y, x;
     message = message || "";
-    canvas = CanvasFactory.createCanvas();
+    canvas = create_canvas_from_image(image);
     ctx = canvas.getContext('2d');
-    if (!image) {
-      canvas.width = 640;
-      canvas.height = 960;
-    } else {
-      canvas.width = image.width;
-      canvas.height = image.height;
-      ctx.drawImage(image, 0, 0);
-    }
     ctx.textAlign = "center";
     max_width = canvas.width - 10;
     parts = message.split(" ");
