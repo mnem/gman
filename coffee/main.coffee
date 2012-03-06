@@ -70,22 +70,32 @@ render_image = (response, message, image_path) ->
 random_image = ->
     return ASSETS[Math.floor(Math.random() * ASSETS.length)].path
 
+specific_image = (requested_image) ->
+    image_path = ASSETS[0].path
+
+    for asset in ASSETS
+        if asset.id == requested_image
+            image_path = asset.path
+            break
+
+    return image_path
+
 ########################################
 ## Routing
 ########################################
 
 ## Specific image with a message
+
+app.get '/:image/:message.png', (request, response) ->
+    render_image response, request.params.message, specific_image(request.params.image)
+
 app.get '/:image/:message', (request, response) ->
-    image_path = ASSETS[0].path
-
-    for asset in ASSETS
-        if asset.id == request.params.image
-            image_path = asset.path
-            break
-
-    render_image response, request.params.message, image_path
+    render_image response, request.params.message, specific_image(request.params.image)
 
 ## Just supplying a message will use a random image
+app.get '/:message.png', (request, response) ->
+    render_image response, request.params.message, random_image()
+
 app.get '/:message', (request, response) ->
     render_image response, request.params.message, random_image()
 

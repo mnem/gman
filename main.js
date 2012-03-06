@@ -1,5 +1,5 @@
 (function() {
-  var ASSETS, BinaryLoader, Canvas, CanvasFactory, ImageFactory, ImageLoader, MAX_FONT_SIZE, MIN_FONT_SIZE, app, draw_at, express, fs, port, random_image, render_image, set_best_size;
+  var ASSETS, BinaryLoader, Canvas, CanvasFactory, ImageFactory, ImageLoader, MAX_FONT_SIZE, MIN_FONT_SIZE, app, draw_at, express, fs, port, random_image, render_image, set_best_size, specific_image;
 
   ASSETS = [
     {
@@ -121,17 +121,29 @@
     return ASSETS[Math.floor(Math.random() * ASSETS.length)].path;
   };
 
-  app.get('/:image/:message', function(request, response) {
+  specific_image = function(requested_image) {
     var asset, image_path, _i, _len;
     image_path = ASSETS[0].path;
     for (_i = 0, _len = ASSETS.length; _i < _len; _i++) {
       asset = ASSETS[_i];
-      if (asset.id === request.params.image) {
+      if (asset.id === requested_image) {
         image_path = asset.path;
         break;
       }
     }
-    return render_image(response, request.params.message, image_path);
+    return image_path;
+  };
+
+  app.get('/:image/:message.png', function(request, response) {
+    return render_image(response, request.params.message, specific_image(request.params.image));
+  });
+
+  app.get('/:image/:message', function(request, response) {
+    return render_image(response, request.params.message, specific_image(request.params.image));
+  });
+
+  app.get('/:message.png', function(request, response) {
+    return render_image(response, request.params.message, random_image());
   });
 
   app.get('/:message', function(request, response) {
