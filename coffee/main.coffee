@@ -108,34 +108,14 @@ specific_image = (requested_image) ->
 ## Routing
 ########################################
 
-## Remote image
-app.get /\/grab\/(.+)/, (request, response) ->
-    last = request.params[0].lastIndexOf '/'
-    url = request.params[0].substring(0, last)
-    message = request.params[0].substring(last + 1)
+app.get '/kap/:style/:url/:message.png', (request, response) ->
+    kapshin_request  response, request.params.style, request.params.url, request.params.message
 
-    message = message.replace(/\.png$/i, '')
-    url = "http://#{url}" unless /^http:\/\/.+$/i.test(url)
+app.get '/kap/:style/:url/:message', (request, response) ->
+    kapshin_request  response, request.params.style, request.params.url, request.params.message
 
-    render_file response, message, url
-
-## Specific image with a message
-app.get '/:image/:message.png', (request, response) ->
-    render_file response, request.params.message, specific_image(request.params.image)
-
-app.get '/:image/:message', (request, response) ->
-    render_file response, request.params.message, specific_image(request.params.image)
-
-## Just supplying a message will use a random image
-app.get '/:message.png', (request, response) ->
-    render_file response, request.params.message, random_image()
-
-app.get '/:message', (request, response) ->
-    render_file response, request.params.message, random_image()
-
-## Catch anything else
 app.get '/*', (request, response) ->
-    render_file response, "Pampas grass!", ASSETS[0].path
+    response.redirect "http://kapshin.com/"
 
 ## Start listening
 port = process.env.PORT || 3000

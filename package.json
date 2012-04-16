@@ -7,7 +7,8 @@
   },
   "dependencies": {
     "express": "2.5.x",
-    "canvas": "https://github.com/mnem/node-canvas/tarball/heroku-0.10.2",
+    "canvas": "0.10.2",
     "buffertools": "1.x.x"
-  }
+  },
+  "xxx": {"canvas": "https://github.com/mnem/node-canvas/tarball/heroku-0.10.2"}
 }
